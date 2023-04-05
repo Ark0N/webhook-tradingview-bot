@@ -1,5 +1,5 @@
 # webhook-tradingview-bot
-This is a simple Node.js application that listens for webhook messages from Binance and places market buy/sell orders based on the alerts received. 
+This is a Node.js application that listens for Webhook messages from Tradingview and places market buy/sell orders on Binance based on the alerts received. 
 
 The bot is built using the node-binance-api library, which provides a simple and easy-to-use API for interacting with the Binance exchange.
 
