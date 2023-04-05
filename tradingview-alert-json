@@ -1,0 +1,7 @@
+{
+  "strategy": "TUSDT",
+  "action": "{{strategy.order.action}}",
+  "contracts": "{{strategy.order.contracts}}",
+  "ticker": "{{ticker}}",
+  "position_size": "{{strategy.position_size}}"
+}
