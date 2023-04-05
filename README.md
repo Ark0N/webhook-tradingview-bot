@@ -10,16 +10,7 @@ Clone this repository to your local machine using git clone https://github.com/y
 
 Navigate to the project directory and install the required dependencies using npm install
 
-Modify the config.js file in the root directory of the project and add your Binance API key and secret to the file in the following format:
-
-javascript
-Copy code
-module.exports = {
-  binance: {
-    APIKEY: 'your-api-key',
-    APISECRET: 'your-api-secret'
-  }
-}
+Modify the config.js file in the root directory of the project and add your Binance API key and secret to the file.
 
 A JSON message from TradingView to the Server looks like this:
 
