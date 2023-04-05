@@ -1,0 +1,4 @@
+express
+body-parser
+node-binance-api
+fs
