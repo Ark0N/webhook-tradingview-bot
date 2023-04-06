@@ -1,13 +1,3 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const Binance = require('node-binance-api');
-const config = require('./config');
-const fs = require('fs');
-const app = express();
-
-
-app.use(bodyParser.json());
-
 const binance = new // Import necessary packages
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -181,19 +171,4 @@ function processStrategy4(alertData) {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Webhook server listening on port ${PORT}`);
-});
-Binance().options({
-  APIKEY: config.binance.APIKEY,
-  APISECRET: config.binance.APISECRET,
-  'family': 4,
-  'baseUrl': 'https://api4.binance.com/api/', // Add this line to change the base URL
-});
-
-
-binance.balance((error, balances) => {
-  if ( error ) return console.error(error);
-  const usdtBalance = balances.USDT.available;
-  const orderQuantity = Number((usdtBalance * 0.9).toFixed(2));
-  console.info("USDT balance: ", usdtBalance);
-  console.info("Order quantity: ", orderQuantity);
 });
