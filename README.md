@@ -1,11 +1,13 @@
 # webhook-tradingview-bot
-This is a Node.js application that listens for Webhook messages from Tradingview and places market buy/sell orders on Binance based on the alerts received.
+This Node.js app receives Webhook notifications from Tradingview and executes market buy/sell orders on Binance accordingly. The outcome is relayed to a Telegram Chat, displaying the Tradingview alert, the action taken by Binance, and the speed of order execution from the moment the signal was received.
 
 The bot is built using the node-binance-api library, which provides a simple and easy-to-use API for interacting with the Binance exchange.
 
-It also has node-telegram-bot-api integration to see which Alerts are coming from Tradingview and the response from Binance. I also calculate the offset between Tradingview Alerts and Order Execution on Binance so see how fast that orders are executed.
+It also makes use of the node-telegram-bot-api library, which provides a simple and easy-to-use API for interacting with Telegram.
+
 
 Getting Started
+
 To get started with the bot, follow these steps:
 
 Clone this repository to your local machine using git clone https://github.com/your-username/binance-webhook-bot.git
@@ -23,3 +25,7 @@ A JSON message from TradingView to the Server looks like this:
   "ticker": "{{ticker}}",
   "position_size": "{{strategy.position_size}}"
 }
+
+Acknowledgment
+
+This project was developed with the assistance of OpenAI's ChatGPT-4, a powerful language model that provided guidance on various aspects of the Node.js application development. The AI model was instrumental in offering suggestions, explanations, and best practices throughout the development process, helping to streamline the implementation and ensure a higher-quality final product.
