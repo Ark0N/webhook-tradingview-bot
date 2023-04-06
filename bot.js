@@ -8,7 +8,7 @@ const TelegramBot = require('node-telegram-bot-api');
 
 // Set up the Telegram bot
 const bot = new TelegramBot(config.telegram.TOKEN, { polling: false });
-const targetChatId = 'ChatID';
+const targetChatId = '269348258';
 
 // Send a message to the chat when the bot starts
 const startupMessage = 'The bot has started successfully!';
@@ -151,14 +151,18 @@ function processTUSDT(alertData) {
         bot.sendMessage(targetChatId, errorMessage);      
         return;
       }
-      // Send the Binance response to the Telegram chat
-      const binanceTransactTime = response.transactTime;
-      const timeOffset = binanceTransactTime - tvTimestamp;
-      const binanceMessage = `From Binance:\nOrder executed:\nSymbol: ${response.symbol}\nOrder ID: ${response.orderId}\nClient Order ID: ${response.clientOrderId}\nTransact Time: ${new Date(response.transactTime)}\nPrice: ${response.price}\nOrig Qty: ${response.origQty}\nExecuted Qty: ${response.executedQty}\nCummulative Quote Qty: ${response.cummulativeQuoteQty}\nStatus: ${response.status}\nTime In Force: ${response.timeInForce}\nType: ${response.type}\nSide: ${response.side}\nWorking Time: ${new Date(response.workingTime)}\nFills:\n${response.fills.map(fill => `  Price: ${fill.price}\n  Qty: ${fill.qty}\n  Commission: ${fill.commission}\n  Commission Asset: ${fill.commissionAsset}\n  Trade ID: ${fill.tradeId}\n`).join('\n')}\nTime Offset: ${timeOffset} ms`;
-      bot.sendMessage(targetChatId, binanceMessage);
-      // Log the order details
       console.log('Order executed:', response);
-
+      binance.balance((error, balances) => {
+        if (error) {
+          console.error(error);
+          return;
+        }
+        
+        const tusdBalance = balances['TUSD'];
+        // Send the TUSD balance to the Telegram chat
+        const tusdBalanceMessage = `TUSD Balance:\nAvailable: ${tusdBalance.available}`;
+        bot.sendMessage(targetChatId, tusdBalanceMessage);
+      });
     });
   } else if (action === 'sell') {
     // Place a market sell order
@@ -178,7 +182,22 @@ function processTUSDT(alertData) {
       const timeOffset = binanceTransactTime - tvTimestamp;
       const binanceMessage = `From Binance:\nOrder executed:\nSymbol: ${response.symbol}\nOrder ID: ${response.orderId}\nClient Order ID: ${response.clientOrderId}\nTransact Time: ${new Date(response.transactTime)}\nPrice: ${response.price}\nOrig Qty: ${response.origQty}\nExecuted Qty: ${response.executedQty}\nCummulative Quote Qty: ${response.cummulativeQuoteQty}\nStatus: ${response.status}\nTime In Force: ${response.timeInForce}\nType: ${response.type}\nSide: ${response.side}\nWorking Time: ${new Date(response.workingTime)}\nFills:\n${response.fills.map(fill => `  Price: ${fill.price}\n  Qty: ${fill.qty}\n  Commission: ${fill.commission}\n  Commission Asset: ${fill.commissionAsset}\n  Trade ID: ${fill.tradeId}\n`).join('\n')}\nTime Offset: ${timeOffset} ms`;
       bot.sendMessage(targetChatId, binanceMessage);
+
+      
       console.log('Order executed:', response);
+
+      binance.balance((error, balances) => {
+        if (error) {
+          console.error(error);
+          return;
+        }
+        
+        const tusdBalance = balances['TUSD'];
+        // Send the TUSD balance to the Telegram chat
+        const tusdBalanceMessage = `TUSD Balance:\nAvailable: ${tusdBalance.available}`;
+        bot.sendMessage(targetChatId, tusdBalanceMessage);
+      });
+
     });
   } else {
     console.log('Invalid action:', action);
