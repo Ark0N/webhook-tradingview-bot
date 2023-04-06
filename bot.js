@@ -8,7 +8,7 @@ const TelegramBot = require('node-telegram-bot-api');
 
 // Set up the Telegram bot
 const bot = new TelegramBot(config.telegram.TOKEN, { polling: false });
-const targetChatId = '269348258';
+const targetChatId = 'INSERT-CHAT_ID_HERE;
 
 // Send a message to the chat when the bot starts
 const startupMessage = 'The bot has started successfully!';
