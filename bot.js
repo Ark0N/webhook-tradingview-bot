@@ -1,4 +1,4 @@
-const binance = new // Import necessary packages
+// Import necessary packages
 const express = require('express');
 const bodyParser = require('body-parser');
 const Binance = require('node-binance-api');
@@ -25,6 +25,7 @@ binance.balance((error, balances) => {
   console.info("USDT balance: ", balances.USDT.available);
   console.info("TUSD balance: ", balances.TUSD.available);
 });
+
 
 // Set up a POST endpoint to receive webhook messages from TradingView
 app.post('/webhook', (req, res) => {
