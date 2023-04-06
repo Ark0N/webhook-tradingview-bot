@@ -4,6 +4,15 @@ const bodyParser = require('body-parser');
 const Binance = require('node-binance-api');
 const config = require('./config');
 const fs = require('fs');
+const TelegramBot = require('node-telegram-bot-api');
+
+// Set up the Telegram bot
+const bot = new TelegramBot(config.telegram.TOKEN, { polling: false });
+const targetChatId = 'your-chat-id';
+
+// Send a message to the chat when the bot starts
+const startupMessage = 'The bot has started successfully!';
+bot.sendMessage(targetChatId, startupMessage);
 
 // Create an instance of the Express application
 const app = express();
@@ -89,6 +98,8 @@ function processUSDInflationStrategy(alertData) {
       }
       // Log the order details
       console.log('Order executed:', response);
+      const tvMessage = `From TradingView:\nStrategy: USDINFLATION\nAction: ${action}\nContracts: ${contracts}\nTicker: ${ticker}\nPosition Size: ${positionSize}`;
+      bot.sendMessage(targetChatId, tvMessage);
     });
   } else if (action === 'sell') {
     // Place a market sell order
@@ -98,10 +109,14 @@ function processUSDInflationStrategy(alertData) {
         fs.appendFile('error-log.txt', JSON.stringify(error) + '\n', (err) => {
           if (err) {
             console.error('Error writing to error-log.txt:', err);
+            const tvMessage = `From TradingView:\nStrategy: USDINFLATION\nAction: ${action}\nContracts: ${contracts}\nTicker: ${ticker}\nPosition Size: ${positionSize}`;
+            bot.sendMessage(targetChatId, tvMessage);
           }
         });
         return;
       }
+      const tvMessage = `From TradingView:\nStrategy: USDINFLATION\nAction: ${action}\nContracts: ${contracts}\nTicker: ${ticker}\nPosition Size: ${positionSize}`;
+      bot.sendMessage(targetChatId, tvMessage);
       console.log('Order executed:', response);
     });
   } else {
@@ -131,6 +146,8 @@ function processTUSDT(alertData) {
         fs.appendFile('error-log.txt', JSON.stringify(error) + '\n', (err) => {
           if (err) {
             console.error('Error writing to error-log.txt:', err);
+            const tvMessage = `From TradingView:\nStrategy: USDINFLATION\nAction: ${action}\nContracts: ${contracts}\nTicker: ${ticker}\nPosition Size: ${positionSize}`;
+            bot.sendMessage(targetChatId, tvMessage);
           }
         });
         return;
@@ -146,6 +163,8 @@ function processTUSDT(alertData) {
         fs.appendFile('error-log.txt', JSON.stringify(error) + '\n', (err) => {
           if (err) {
             console.error('Error writing to error-log.txt:', err);
+            const tvMessage = `From TradingView:\nStrategy: USDINFLATION\nAction: ${action}\nContracts: ${contracts}\nTicker: ${ticker}\nPosition Size: ${positionSize}`;
+            bot.sendMessage(targetChatId, tvMessage);
           }
         });
         return;
