@@ -35,16 +35,6 @@ binance.balance((error, balances) => {
   console.info("TUSD balance: ", balances.TUSD.available);
 });
 
-// calculate stepsize
-
-
-
-
-
-
-
-
-
 // Set up a POST endpoint to receive webhook messages from TradingView
 app.post('/webhook', (req, res) => {
   const alertData = req.body;
