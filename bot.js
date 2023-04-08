@@ -149,10 +149,10 @@ function writeSignalCountsToFile() {
 function processTUSDT(alertData) {
   // Extract the necessary data from the alert
   const action = alertData.action;
-  const contracts = parseFloat(alertData.contracts); // Round to 8 decimal places
+  const contracts = parseFloat(alertData.contracts); 
   const ticker = alertData.ticker;
-  const positionSize = parseFloat(alertData.position_size); // Round to 8 decimal places
-  const limitPrice = parseFloat(alertData.limit_price); // Round to 8 decimal places
+  const positionSize = parseFloat(alertData.position_size); 
+  const limitPrice = parseFloat(alertData.limit_price); 
   const tvTimestamp = Date.now();
   const tvMessage = `Alert from TradingView (${tvTimestamp} ms):\nStrategy: TUSDT\nAction: ${action}\nContracts: ${contracts}\nTicker: ${ticker}\nPosition Size: ${positionSize}`;
   bot.sendMessage(config.telegram.targetChatId, tvMessage);
