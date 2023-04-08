@@ -5,14 +5,14 @@ const Binance = require('node-binance-api');
 const config = require('./config');
 const fs = require('fs');
 const TelegramBot = require('node-telegram-bot-api');
+const stepSizeTUSD = 0.00001;
 
 // Set up the Telegram bot
 const bot = new TelegramBot(config.telegram.TOKEN, { polling: false });
-const targetChatId = 'INSERT-CHAT_ID_HERE;
 
 // Send a message to the chat when the bot starts
 const startupMessage = 'The bot has started successfully!';
-bot.sendMessage(targetChatId, startupMessage);
+bot.sendMessage(config.telegram.targetChatId, startupMessage);
 
 // Create an instance of the Express application
 const app = express();
@@ -34,6 +34,15 @@ binance.balance((error, balances) => {
   console.info("USDT balance: ", balances.USDT.available);
   console.info("TUSD balance: ", balances.TUSD.available);
 });
+
+// calculate stepsize
+
+
+
+
+
+
+
 
 
 // Set up a POST endpoint to receive webhook messages from TradingView
@@ -99,7 +108,7 @@ function processUSDInflationStrategy(alertData) {
       // Log the order details
       console.log('Order executed:', response);
       const tvMessage = `From TradingView:\nStrategy: USDINFLATION\nAction: ${action}\nContracts: ${contracts}\nTicker: ${ticker}\nPosition Size: ${positionSize}`;
-      bot.sendMessage(targetChatId, tvMessage);
+      bot.sendMessage(config.telegram.targetChatId, tvMessage);
     });
   } else if (action === 'sell') {
     // Place a market sell order
@@ -110,13 +119,13 @@ function processUSDInflationStrategy(alertData) {
           if (err) {
             console.error('Error writing to error-log.txt:', err);
             const tvMessage = `From TradingView:\nStrategy: USDINFLATION\nAction: ${action}\nContracts: ${contracts}\nTicker: ${ticker}\nPosition Size: ${positionSize}`;
-            bot.sendMessage(targetChatId, tvMessage);
+            bot.sendMessage(config.telegram.targetChatId, tvMessage);
           }
         });
         return;
       }
       const tvMessage = `From TradingView:\nStrategy: USDINFLATION\nAction: ${action}\nContracts: ${contracts}\nTicker: ${ticker}\nPosition Size: ${positionSize}`;
-      bot.sendMessage(targetChatId, tvMessage);
+      bot.sendMessage(config.telegram.targetChatId, tvMessage);
       console.log('Order executed:', response);
     });
   } else {
@@ -124,22 +133,40 @@ function processUSDInflationStrategy(alertData) {
   }
 }
 
+// Buy Signal Count for USDT Strategy
+let buySignalCountUSDT = 0;
+let sellSignalCountUSDT = 0;
+
+function writeSignalCountsToFile() {
+  const logData = `Buy signals executed: ${buySignalCountUSDT}\nSell signals executed: ${sellSignalCountUSDT}\n`;
+  fs.writeFile('tradinglogUSDT.txt', logData, (err) => {
+    if (err) {
+      console.error('Error writing to tradinglogUSDT.txt:', err);
+    }
+  });
+}
+
 function processTUSDT(alertData) {
   // Extract the necessary data from the alert
   const action = alertData.action;
-  const contracts = parseFloat(alertData.contracts).toFixed(5); // Round to 5 decimal places
+  const contracts = parseFloat(alertData.contracts); // Round to 8 decimal places
   const ticker = alertData.ticker;
-  const positionSize = parseFloat(alertData.position_size).toFixed(5); // Round to 5 decimal places
+  const positionSize = parseFloat(alertData.position_size); // Round to 8 decimal places
+  const limitPrice = parseFloat(alertData.limit_price); // Round to 8 decimal places
   const tvTimestamp = Date.now();
   const tvMessage = `Alert from TradingView (${tvTimestamp} ms):\nStrategy: TUSDT\nAction: ${action}\nContracts: ${contracts}\nTicker: ${ticker}\nPosition Size: ${positionSize}`;
-  bot.sendMessage(targetChatId, tvMessage);
+  bot.sendMessage(config.telegram.targetChatId, tvMessage);
+
+  const adjustedContractsTUSD = parseFloat((Math.round(contracts / stepSizeTUSD) * stepSizeTUSD).toFixed(8));
+
 
   // Convert the ticker to the format required by the Binance API
   const ccxtSymbol = `${ticker.slice(0, -4)}${ticker.slice(-4)}`;
 
   if (action === 'buy') {
     // Place a market buy order
-    binance.marketBuy(ccxtSymbol, contracts, (error, response) => {
+          binance.marketBuy(ccxtSymbol, adjustedContractsTUSD, (error, response) => {
+
       if (error) {
         console.error(error);
         // Log the error message to a file
@@ -148,25 +175,34 @@ function processTUSDT(alertData) {
           }
         });
         const errorMessage = `From Binance:\nError:\n${JSON.stringify(error)}`;
-        bot.sendMessage(targetChatId, errorMessage);      
+        bot.sendMessage(config.telegram.targetChatId, errorMessage);      
         return;
       }
       console.log('Order executed:', response);
+      buySignalCountUSDT++; // Increment the buy signal count
+      writeSignalCountsToFile();
+      const binanceTransactTime = response.transactTime;
+      const timeOffset = binanceTransactTime - tvTimestamp;
+      const binanceMessage = `From Binance:\nOrder executed:\nSymbol: ${response.symbol}\nOrder ID: ${response.orderId}\nClient Order ID: ${response.clientOrderId}\nTransact Time: ${new Date(response.transactTime)}\nPrice: ${response.price}\nOrig Qty: ${response.origQty}\nExecuted Qty: ${response.executedQty}\nCummulative Quote Qty: ${response.cummulativeQuoteQty}\nStatus: ${response.status}\nTime In Force: ${response.timeInForce}\nType: ${response.type}\nSide: ${response.side}\nWorking Time: ${new Date(response.workingTime)}\nFills:\n${response.fills.map(fill => `  Price: ${fill.price}\n  Qty: ${fill.qty}\n  Commission: ${fill.commission}\n  Commission Asset: ${fill.commissionAsset}\n  Trade ID: ${fill.tradeId}\n`).join('\n')}\nTime Offset: ${timeOffset} ms`;
+      bot.sendMessage(config.telegram.targetChatId, binanceMessage);
+
       binance.balance((error, balances) => {
         if (error) {
           console.error(error);
           return;
         }
-        
         const tusdBalance = balances['TUSD'];
         // Send the TUSD balance to the Telegram chat
         const tusdBalanceMessage = `TUSD Balance:\nAvailable: ${tusdBalance.available}`;
-        bot.sendMessage(targetChatId, tusdBalanceMessage);
+        bot.sendMessage(config.telegram.targetChatId, tusdBalanceMessage);
       });
     });
   } else if (action === 'sell') {
     // Place a market sell order
-    binance.marketSell(ccxtSymbol, contracts, (error, response) => {
+      const adjustedContractsTUSD2 = parseFloat((Math.round(contracts / stepSizeTUSD) * stepSizeTUSD).toFixed(8));
+
+      binance.marketSell(ccxtSymbol, adjustedContractsTUSD2, (error, response) => {
+
       if (error) {
         console.error(error);
         fs.appendFile('error-log.txt', JSON.stringify(error) + '\n', (err) => {
@@ -175,17 +211,19 @@ function processTUSDT(alertData) {
           }
         });
         const errorMessage = `From Binance:\nError:\n${JSON.stringify(error)}`;
-        bot.sendMessage(targetChatId, errorMessage);      
+        bot.sendMessage(config.telegram.targetChatId, errorMessage);      
         return;
       }
       const binanceTransactTime = response.transactTime;
       const timeOffset = binanceTransactTime - tvTimestamp;
       const binanceMessage = `From Binance:\nOrder executed:\nSymbol: ${response.symbol}\nOrder ID: ${response.orderId}\nClient Order ID: ${response.clientOrderId}\nTransact Time: ${new Date(response.transactTime)}\nPrice: ${response.price}\nOrig Qty: ${response.origQty}\nExecuted Qty: ${response.executedQty}\nCummulative Quote Qty: ${response.cummulativeQuoteQty}\nStatus: ${response.status}\nTime In Force: ${response.timeInForce}\nType: ${response.type}\nSide: ${response.side}\nWorking Time: ${new Date(response.workingTime)}\nFills:\n${response.fills.map(fill => `  Price: ${fill.price}\n  Qty: ${fill.qty}\n  Commission: ${fill.commission}\n  Commission Asset: ${fill.commissionAsset}\n  Trade ID: ${fill.tradeId}\n`).join('\n')}\nTime Offset: ${timeOffset} ms`;
-      bot.sendMessage(targetChatId, binanceMessage);
+      bot.sendMessage(config.telegram.targetChatId, binanceMessage);
 
       
       console.log('Order executed:', response);
-
+      bot.sendMessage(config.telegram.targetChatId, response);
+      sellSignalCountUSDT++;
+      writeSignalCountsToFile();
       binance.balance((error, balances) => {
         if (error) {
           console.error(error);
@@ -195,7 +233,7 @@ function processTUSDT(alertData) {
         const tusdBalance = balances['TUSD'];
         // Send the TUSD balance to the Telegram chat
         const tusdBalanceMessage = `TUSD Balance:\nAvailable: ${tusdBalance.available}`;
-        bot.sendMessage(targetChatId, tusdBalanceMessage);
+        bot.sendMessage(config.telegram.targetChatId, tusdBalanceMessage);
       });
 
     });
@@ -217,6 +255,7 @@ function processStrategy4(alertData) {
 }
 
 
+  
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Webhook server listening on port ${PORT}`);
