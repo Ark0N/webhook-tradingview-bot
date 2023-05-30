@@ -12,7 +12,7 @@ To get started with the bot, follow these steps:
 
 Clone this repository to your local machine using git clone https://github.com/Ark0N/webhook-tradingview-bot.git
 
-Navigate to the project directory and install the required dependencies using npm install
+Navigate to the project directory and install the required dependencies using npm install from requirements.txt
 
 Modify the config.js file in the root directory of the project and add your Binance API key and secret to the file.
 
